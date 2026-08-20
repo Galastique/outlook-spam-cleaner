@@ -73,7 +73,6 @@ async function getAccessToken() {
 
 async function runSpamCleaner() {
     try {
-        console.log('Acquiring OAuth2 Access Token...');
         const accessToken = await getAccessToken();
 
         const client = Client.init({
@@ -121,4 +120,4 @@ function checkBlacklist(email) {
 }
 
 runSpamCleaner();
-setInterval(runSpamCleaner, 10 * 1000);
+setInterval(runSpamCleaner, 60 * 60 * 1000);
