@@ -1,6 +1,6 @@
-require('dotenv').config();
-const fs = require('fs');
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+const fs = require('fs');
 const msal = require('@azure/msal-node');
 const { Client } = require('@microsoft/microsoft-graph-client');
 require('isomorphic-fetch');
@@ -21,6 +21,8 @@ const msalConfig = {
 };
 
 const pca = new msal.PublicClientApplication(msalConfig);
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function loadTokenCache() {
     if (!fs.existsSync(tokenCachePath)) {
@@ -71,6 +73,23 @@ async function getAccessToken() {
     return response.accessToken;
 }
 
+async function deleteMessageWithRetry(client, messageId, senderEmail, retries = 3) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            await client.api(`/me/messages/${messageId}`).delete();
+            console.log(`Message from ${senderEmail} deleted successfully.`);
+            return;
+        } catch (error) {
+            if (attempt === retries) {
+                console.error(`Failed to delete message from ${senderEmail} after ${retries} attempts:`, error);
+            } else {
+                console.log(`Network error deleting message from ${senderEmail}. Retrying attempt ${attempt + 1}/${retries}...`);
+                await sleep(1000);
+            }
+        }
+    }
+}
+
 async function runSpamCleaner() {
     try {
         const accessToken = await getAccessToken();
@@ -92,17 +111,14 @@ async function runSpamCleaner() {
             return;
         }
 
-        messages.forEach((msg, index) => {
+        for (const msg of messages) {
             const senderEmail = msg.from?.emailAddress?.address;
 
             if (checkBlacklist(senderEmail)) {
-                client.api(`/me/messages/${msg.id}`).delete().then(() => {
-                    console.log(`Message from ${senderEmail} deleted successfully.`);
-                }).catch((deleteError) => {
-                    console.error(`Failed to delete message from ${senderEmail}:`, deleteError);
-                });
+                await deleteMessageWithRetry(client, msg.id, senderEmail);
+                await sleep(250); // Pause briefly between deletions to avoid network socket drops
             }
-        });
+        }
 
     } catch (error) {
         console.error('Graph API Error:', error);
