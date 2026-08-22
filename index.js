@@ -73,7 +73,7 @@ async function getAccessToken() {
     return response.accessToken;
 }
 
-async function deleteMessageWithRetry(client, messageId, senderEmail, retries = 3) {
+async function deleteMessageWithRetry(client, messageId, senderEmail, retries = 5) {
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
             await client.api(`/me/messages/${messageId}`).delete();
@@ -83,7 +83,6 @@ async function deleteMessageWithRetry(client, messageId, senderEmail, retries = 
             if (attempt === retries) {
                 console.error(`Failed to delete message from ${senderEmail} after ${retries} attempts:`, error);
             } else {
-                console.log(`Network error deleting message from ${senderEmail}. Retrying attempt ${attempt + 1}/${retries}...`);
                 await sleep(1000);
             }
         }
