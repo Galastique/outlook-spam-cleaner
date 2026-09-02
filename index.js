@@ -100,7 +100,7 @@ async function runSpamCleaner() {
         // Fetch top 10 messages from spam folder
         const response = await client
             .api('/me/mailFolders/junkEmail/messages')
-            .top(10)
+            .top(25)
             .select('id,from')
             .get();
 
