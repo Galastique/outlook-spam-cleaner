@@ -129,6 +129,10 @@ function checkBlacklist(email) {
         return false;
     }
 
+    if (!email.includes('.') || !email.includes('@') || email.includes('--')) {
+        return true;
+    }
+
     return blocklist.some((blockedEntry) => {
         return email === blockedEntry || email.endsWith(`@${blockedEntry}`);
     });
