@@ -113,7 +113,7 @@ async function runSpamCleaner() {
         for (const msg of messages) {
             const senderEmail = msg.from?.emailAddress?.address;
 
-            if (checkBlacklist(senderEmail.toLowerCase())) {
+            if (!senderEmail || checkBlacklist(senderEmail.toLowerCase())) {
                 await deleteMessageWithRetry(client, msg.id, senderEmail);
                 await sleep(250); // Pause briefly between deletions to avoid network socket drops
             }
