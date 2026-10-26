@@ -129,7 +129,7 @@ function checkBlacklist(email) {
         return false;
     }
 
-    if (!email.includes('.') || !email.includes('@') || email.includes('--')) {
+    if (!email.includes('.') || !email.includes('@') || email.includes('--') || /\p{Extended_Pictographic}/u.test(email)) {
         return true;
     }
 
