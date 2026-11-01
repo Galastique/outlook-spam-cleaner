@@ -97,7 +97,7 @@ async function runSpamCleaner() {
             authProvider: (done) => done(null, accessToken),
         });
 
-        // Fetch top 10 messages from spam folder
+        // Fetch top 25 messages from spam folder
         const response = await client
             .api('/me/mailFolders/junkEmail/messages')
             .top(25)
